@@ -6,4 +6,6 @@ import com.palyndrum.emergencyalert.entity.User;
 public interface UserService {
 
     User findById(String id) throws ResourceNotFoundException;
+
+    User profile() throws ResourceNotFoundException;
 }

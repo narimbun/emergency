@@ -21,9 +21,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByPhone(phone).orElseThrow(() -> new UsernameNotFoundException("User Not Found with phone number : " + phone));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User Not Found with phone number : " + username));
 
         return new UserDetailsImpl(user.getId(), user.getEmail(), user.getPhone(), user.getPassword(), user.getUsername(), user.getName(), user.isActive(), user.getLastLoginTime());
     }

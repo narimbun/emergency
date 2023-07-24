@@ -2,6 +2,7 @@ package com.palyndrum.emergencyalert.api.controller;
 
 import com.palyndrum.emergencyalert.api.payload.request.RegistrationRq;
 import com.palyndrum.emergencyalert.common.api.controller.BaseController;
+import com.palyndrum.emergencyalert.common.api.exception.ResourceConflictException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceInvalidException;
 import com.palyndrum.emergencyalert.entity.User;
 import com.palyndrum.emergencyalert.service.RegistrationService;
@@ -27,7 +28,7 @@ public class RegistrationController extends BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<User> registration(@Valid @RequestBody RegistrationRq registrationRq) throws ResourceInvalidException {
+    public ResponseEntity<User> registration(@Valid @RequestBody RegistrationRq registrationRq) throws ResourceInvalidException, ResourceConflictException {
 
         User user = registrationService.registration(registrationRq);
 
