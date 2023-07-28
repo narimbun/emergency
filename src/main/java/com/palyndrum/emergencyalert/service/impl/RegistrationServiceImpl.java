@@ -8,6 +8,7 @@ import com.palyndrum.emergencyalert.common.util.CommonUtil;
 import com.palyndrum.emergencyalert.entity.User;
 import com.palyndrum.emergencyalert.repository.UserRepository;
 import com.palyndrum.emergencyalert.service.RegistrationService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +29,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     public User registration(RegistrationRq registrationRq) throws ResourceInvalidException, ResourceConflictException {
 
 
-        if(!CommonUtil.patternMatches(registrationRq.getEmail(), RegexConstant.EMAIL_PATTERN))
+        if (!CommonUtil.patternMatches(registrationRq.getEmail(), RegexConstant.EMAIL_PATTERN))
             throw ResourceInvalidException.create("Email tidak valid. Pastikan Anda memasukan email yang benar.");
 
-        if(!CommonUtil.patternMatches(registrationRq.getPhone(), RegexConstant.PHONE_PATTERN))
+        if (!CommonUtil.patternMatches(registrationRq.getPhone(), RegexConstant.PHONE_PATTERN))
             throw ResourceInvalidException.create("Nomor handphone tidak valid. Pastikan Anda memasukan nomor yang benar.");
 
         if (!registrationRq.getPassword().equals(registrationRq.getConfirmPassword()))
@@ -53,6 +54,10 @@ public class RegistrationServiceImpl implements RegistrationService {
         user.setActive(true);
         user.setVerified(false);
         user.setCreatedDate(new Date());
+
+       /* String otp = RandomStringUtils.randomNumeric(6);*/
+        /*user.setRegistrationOtp(otp);
+        user.setLastOtpSendDate(new Date());*/
 
         user = userRepository.save(user);
 

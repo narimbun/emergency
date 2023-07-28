@@ -57,6 +57,9 @@ public class AuthenticationJWTFilter extends OncePerRequestFilter {
                 currentUser.setName(user.getName());
                 currentUser.setActive(user.isActive());
                 currentUser.setLastLoginTime(user.getLastLoginTime());
+                currentUser.setVerified(user.isVerified());
+                currentUser.setLastOtpSendDate(user.getLastOtpSendDate());
+                currentUser.setRegistrationOtp(user.getRegistrationOtp());
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

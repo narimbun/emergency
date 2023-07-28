@@ -3,10 +3,13 @@ package com.palyndrum.emergencyalert.api.controller;
 import com.palyndrum.emergencyalert.api.payload.request.RecipientRq;
 import com.palyndrum.emergencyalert.common.api.controller.BaseController;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceConflictException;
+import com.palyndrum.emergencyalert.common.api.exception.ResourceForbiddenException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceInvalidException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceNotFoundException;
 import com.palyndrum.emergencyalert.common.api.payload.response.CommonRs;
 import com.palyndrum.emergencyalert.service.EmergencyNumbersService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,25 +30,25 @@ public class EmergencyNumbersController extends BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> addRecipient(@Valid @RequestBody RecipientRq bodyRq) throws ResourceInvalidException, ResourceConflictException {
+    public ResponseEntity<Map<String, Object>> addRecipient(@Valid @RequestBody RecipientRq bodyRq) throws ResourceInvalidException, ResourceConflictException, ResourceForbiddenException {
 
         return ResponseEntity.ok(emergencyNumbersService.addNumber(bodyRq));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> editRecipient(@PathVariable String id, @Valid @RequestBody RecipientRq bodyRq) throws ResourceNotFoundException, ResourceInvalidException, ResourceConflictException {
+    public ResponseEntity<Map<String, Object>> editRecipient(@PathVariable String id, @Valid @RequestBody RecipientRq bodyRq) throws ResourceNotFoundException, ResourceInvalidException, ResourceConflictException, ResourceForbiddenException {
 
         return ResponseEntity.ok(emergencyNumbersService.editNumber(id, bodyRq));
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> recipientList(@RequestHeader(value = "Authorization") String accessToken) {
+    public ResponseEntity<List<Map<String, Object>>> recipientList() throws ResourceForbiddenException {
 
         return ResponseEntity.ok(emergencyNumbersService.numberList());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CommonRs> deleteRecipient(@PathVariable String id) throws ResourceNotFoundException {
+    public ResponseEntity<CommonRs> deleteRecipient(@PathVariable String id) throws ResourceNotFoundException, ResourceForbiddenException {
 
         emergencyNumbersService.deleteNumber(id);
 

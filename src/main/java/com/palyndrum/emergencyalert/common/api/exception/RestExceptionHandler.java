@@ -45,9 +45,14 @@ public class RestExceptionHandler {
             CommonRs commonRs = new CommonRs(HttpStatus.FORBIDDEN.getReasonPhrase());
             commonRs.addError(ex.getMessage());
             return new ResponseEntity<>(commonRs, HttpStatus.FORBIDDEN);
+        } else if (ex instanceof ResourceForbiddenException) {
+            CommonRs commonRs = new CommonRs(HttpStatus.FORBIDDEN.getReasonPhrase());
+            commonRs.addError(ex.getMessage());
+            return new ResponseEntity<>(commonRs, HttpStatus.FORBIDDEN);
         } else {
             CommonRs commonRs = new CommonRs(APIMessageConstant.SYSTEM_ERROR);
             commonRs.addError(APIMessageConstant.SYSTEM_ERROR);
+            commonRs.addError(ex.getMessage());
             ex.printStackTrace();
             return new ResponseEntity<>(commonRs, HttpStatus.INTERNAL_SERVER_ERROR);
         }

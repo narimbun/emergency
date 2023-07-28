@@ -21,5 +21,8 @@ public class CurrentUser {
     private String username;
     private String name;
     private boolean isActive;
+    private boolean isVerified;
     private Date lastLoginTime;
+    private String registrationOtp;
+    private Date lastOtpSendDate;
 }

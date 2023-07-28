@@ -5,6 +5,7 @@ import com.palyndrum.emergencyalert.common.api.controller.BaseController;
 import com.palyndrum.emergencyalert.common.security.jwt.JWTUtils;
 import com.palyndrum.emergencyalert.common.security.model.UserDetailsImpl;
 import com.palyndrum.emergencyalert.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +33,7 @@ public class LoginController extends BaseController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authentication(@RequestBody LoginRq bodyRq) {
+    public ResponseEntity<Map<String, Object>> authentication(@Valid @RequestBody LoginRq bodyRq) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(bodyRq.getUsername(), bodyRq.getPassword()));

@@ -2,6 +2,7 @@ package com.palyndrum.emergencyalert.service.impl;
 
 import com.palyndrum.emergencyalert.api.payload.request.RecipientRq;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceConflictException;
+import com.palyndrum.emergencyalert.common.api.exception.ResourceForbiddenException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceInvalidException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceNotFoundException;
 import com.palyndrum.emergencyalert.common.constant.RegexConstant;
@@ -33,7 +34,11 @@ public class EmergencyNumbersServiceImpl implements EmergencyNumbersService {
     }
 
     @Override
-    public Map<String, Object> addNumber(RecipientRq bodyRq) throws ResourceInvalidException, ResourceConflictException {
+    public Map<String, Object> addNumber(RecipientRq bodyRq) throws ResourceInvalidException, ResourceConflictException, ResourceForbiddenException {
+
+        if (!currentUser.isVerified())
+            throw ResourceForbiddenException.create("Nomor Anda belum ter-verfikasi. Silahkan lakukan verifikasi.");
+
 
         if (!CommonUtil.patternMatches(bodyRq.getPhone(), RegexConstant.PHONE_PATTERN))
             throw ResourceInvalidException.create("Nomor handphone tidak valid. Pastikan Anda memasukan nomor yang benar.");
@@ -54,7 +59,10 @@ public class EmergencyNumbersServiceImpl implements EmergencyNumbersService {
     }
 
     @Override
-    public Map<String, Object> editNumber(String id, RecipientRq bodyRq) throws ResourceNotFoundException, ResourceInvalidException, ResourceConflictException {
+    public Map<String, Object> editNumber(String id, RecipientRq bodyRq) throws ResourceNotFoundException, ResourceInvalidException, ResourceConflictException, ResourceForbiddenException {
+
+        if (!currentUser.isVerified())
+            throw ResourceForbiddenException.create("Nomor Anda belum ter-verfikasi. Silahkan lakukan verifikasi.");
 
         if (!CommonUtil.patternMatches(bodyRq.getPhone(), RegexConstant.PHONE_PATTERN))
             throw ResourceInvalidException.create("Nomor handphone tidak valid. Pastikan Anda memasukan nomor yang benar.");
@@ -81,7 +89,10 @@ public class EmergencyNumbersServiceImpl implements EmergencyNumbersService {
     }
 
     @Override
-    public List<Map<String, Object>> numberList() {
+    public List<Map<String, Object>> numberList() throws ResourceForbiddenException {
+
+        if (!currentUser.isVerified())
+            throw ResourceForbiddenException.create("Nomor Anda belum ter-verfikasi. Silahkan lakukan verifikasi.");
 
         List<EmergencyNumbers> emergencyNumbersList = emergencyNumbersRepository.findByUserId(currentUser.getId());
 
@@ -90,7 +101,10 @@ public class EmergencyNumbersServiceImpl implements EmergencyNumbersService {
     }
 
     @Override
-    public void deleteNumber(String id) throws ResourceNotFoundException {
+    public void deleteNumber(String id) throws ResourceNotFoundException, ResourceForbiddenException {
+
+        if (!currentUser.isVerified())
+            throw ResourceForbiddenException.create("Nomor Anda belum ter-verfikasi. Silahkan lakukan verifikasi.");
 
         EmergencyNumbers em = emergencyNumbersRepository.findById(id).orElseThrow(() -> ResourceNotFoundException.create(String.format("Number with id '%s' doesn't exist.", id)));
 

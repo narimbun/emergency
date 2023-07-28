@@ -53,6 +53,15 @@ public class User extends BaseEntity {
     @Column(name = "last_login_time")
     private Date lastLoginTime;
 
+    @JsonIgnore
+    @Column(name = "registration_otp")
+    private String registrationOtp;
+
+    @JsonIgnore
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_otp_send_date")
+    private Date lastOtpSendDate;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<EmergencyNumbers> emergencyNumbers;
