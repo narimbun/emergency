@@ -1,10 +1,7 @@
 package com.palyndrum.emergencyalert.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -44,6 +41,9 @@ public class Institution extends BaseEntity {
     @Column(name = "longitude", nullable = false)
     private Double longitude;
 
+    @Transient
+    private Double distance;
+
     public Map<String, Object> forListResponse() {
 
         HashMap<String, Object> map = new LinkedHashMap<>();
@@ -52,6 +52,7 @@ public class Institution extends BaseEntity {
         map.put("name", this.name);
         map.put("address", this.address);
         map.put("phone", this.phone);
+        map.put("distance", this.distance);
 
         return map;
     }

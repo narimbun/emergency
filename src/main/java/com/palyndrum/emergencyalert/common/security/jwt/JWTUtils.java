@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.palyndrum.emergencyalert.common.security.model.UserDetailsImpl;
+import com.palyndrum.emergencyalert.common.util.CommonUtil;
 import com.palyndrum.emergencyalert.entity.User;
 import com.palyndrum.emergencyalert.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +45,19 @@ public class JWTUtils {
 
         Algorithm algorithm = Algorithm.HMAC512(jwtSecret);
 
+        Date expiresAt;
+
+        if (jwtExpirationMs < 0) {
+            expiresAt = CommonUtil.toDate("31-12-9999 23:59:59", "dd-M-yyyy hh:mm:ss");
+        } else
+            expiresAt = new Date((new Date()).getTime() + jwtExpirationMs);
+
+
         String accessToken = JWT.create()
                 .withIssuer(issuer)
                 .withSubject(userPrincipal.getId())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date((new Date()).getTime() + jwtExpirationMs))
+                .withExpiresAt(expiresAt)
                 .sign(algorithm);
 
         mapResult.put("accessToken", accessToken);

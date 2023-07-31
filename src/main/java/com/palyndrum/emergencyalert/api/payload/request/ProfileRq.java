@@ -11,7 +11,6 @@ public class ProfileRq {
     @NotBlank(message = "name is mandatory")
     private String name;
 
-    @NotBlank(message = "phone is mandatory")
-    private String phone;
+
 
 }

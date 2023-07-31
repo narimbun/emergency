@@ -1,5 +1,6 @@
 package com.palyndrum.emergencyalert.service.impl;
 
+import com.palyndrum.emergencyalert.api.payload.request.ProfileRq;
 import com.palyndrum.emergencyalert.api.payload.request.VerificationRq;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceConflictException;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceForbiddenException;
@@ -33,9 +34,6 @@ public class UserServiceImpl implements UserService {
     private MailSender mailSender;
     private RestTemplate restTemplate;
 
-    @Value("${wa.gateway.endpoint}")
-    private String waEndpoint;
-
     @Value("${mail.send.to}")
     private String mailSendTo;
 
@@ -58,6 +56,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public User profile() throws ResourceNotFoundException {
         return findById(currentUser.getId());
+    }
+
+    @Override
+    public User editProfile(ProfileRq bodyRq) throws ResourceNotFoundException {
+
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> ResourceNotFoundException.create(String.format("User with '%s' doesn't exist.", currentUser.getId())));
+
+        user.setName(bodyRq.getName());
+
+        user = userRepository.save(user);
+
+        return user;
     }
 
     @Override
@@ -128,6 +139,9 @@ public class UserServiceImpl implements UserService {
         message.setSubject("Kode Verifikasi");
         message.setText(String.format("Hai %s\nKode verifikasi Anda : %s", user.getName(), otp));*/
 
+        String waEndpoint = applicationConfigRepository.findById(CodeConfigConstant.RAPIWHA_ENDPOINT)
+                .orElseThrow(() -> ResourceNotFoundException.create(String.format("Config '%s' doesn't exist.", CodeConfigConstant.RAPIWHA_ENDPOINT))).getValue();
+
 
         String endpoint = String.format(waEndpoint, user.getPhone().replaceFirst("0", "62"), String.format(templateMessage, user.getName(), otp));
 
@@ -138,8 +152,8 @@ public class UserServiceImpl implements UserService {
             log.info("finish send to wa {}", user.getName());
 
 
-      /*      log.info("start send email {}", user.getName());
-            *//*mailSender.send(message);*//*
+            /*      log.info("start send email {}", user.getName());
+             *//*mailSender.send(message);*//*
             log.info("finish send email {}", user.getName());*/
         });
         newThread.start();

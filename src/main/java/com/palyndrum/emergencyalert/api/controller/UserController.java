@@ -1,5 +1,6 @@
 package com.palyndrum.emergencyalert.api.controller;
 
+import com.palyndrum.emergencyalert.api.payload.request.ProfileRq;
 import com.palyndrum.emergencyalert.api.payload.request.VerificationRq;
 import com.palyndrum.emergencyalert.common.api.controller.BaseController;
 import com.palyndrum.emergencyalert.common.api.exception.ResourceConflictException;
@@ -31,6 +32,12 @@ public class UserController extends BaseController {
     public ResponseEntity<Map<String, Object>> profile() throws ResourceNotFoundException {
 
         return ResponseEntity.ok(userService.profile().toMap());
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> editProfile(@Valid @RequestBody ProfileRq bodyRq) throws ResourceNotFoundException {
+
+        return ResponseEntity.ok(userService.editProfile(bodyRq).toMap());
     }
 
     @PostMapping("/verification")
