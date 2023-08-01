@@ -13,9 +13,9 @@ import com.palyndrum.emergencyalert.repository.EmergencyNumbersRepository;
 import com.palyndrum.emergencyalert.repository.UserRepository;
 import com.palyndrum.emergencyalert.service.InstitutionService;
 import com.palyndrum.emergencyalert.service.SendMessageService;
+import com.palyndrum.emergencyalert.service.WhatsAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,18 +33,20 @@ public class SendMessageServiceImpl implements SendMessageService {
     private EmergencyNumbersRepository emergencyNumbersRepository;
     private RestTemplate restTemplate;
     private InstitutionService institutionService;
+    private WhatsAppService whatsAppService;
 
     @Value("${googlemap.link}")
     private String googleMapLink;
 
     public SendMessageServiceImpl(CurrentUser currentUser, UserRepository userRepository, ApplicationConfigRepository applicationConfigRepository,
-                                  EmergencyNumbersRepository emergencyNumbersRepository, RestTemplate restTemplate, InstitutionService institutionService) {
+                                  EmergencyNumbersRepository emergencyNumbersRepository, RestTemplate restTemplate, InstitutionService institutionService, WhatsAppService whatsAppService) {
         this.userRepository = userRepository;
         this.applicationConfigRepository = applicationConfigRepository;
         this.currentUser = currentUser;
         this.emergencyNumbersRepository = emergencyNumbersRepository;
         this.restTemplate = restTemplate;
         this.institutionService = institutionService;
+        this.whatsAppService = whatsAppService;
     }
 
     @Override
@@ -58,13 +60,10 @@ public class SendMessageServiceImpl implements SendMessageService {
         if (!user.get().isVerified())
             throw ResourceForbiddenException.create("Nomor Anda belum ter-verfikasi. Silahkan lakukan verifikasi.");
 
-        Optional<ApplicationConfig> applicationConfig = applicationConfigRepository.findById(CodeConfigConstant.EMERGENCY_MESSAGE);
+        Optional<ApplicationConfig> templateMessage = applicationConfigRepository.findById(CodeConfigConstant.EMERGENCY_MESSAGE);
 
-        if (applicationConfig.isEmpty())
+        if (templateMessage.isEmpty())
             throw ResourceNotFoundException.create("Default template pesan tidak ditemukan.");
-
-        String waEndpoint = applicationConfigRepository.findById(CodeConfigConstant.RAPIWHA_ENDPOINT)
-                .orElseThrow(() -> ResourceNotFoundException.create(String.format("Config '%s' doesn't exist.", CodeConfigConstant.RAPIWHA_ENDPOINT))).getValue();
 
         List<EmergencyNumbers> listNumber = emergencyNumbersRepository.findByUserId(user.get().getId());
 
@@ -92,22 +91,23 @@ public class SendMessageServiceImpl implements SendMessageService {
         if (!listNumber.isEmpty()) {
             listNumber.forEach(i -> {
                 Thread newThread = new Thread(() -> {
-                    String templateMessage = applicationConfig.get().getValue();
+                    String template = templateMessage.get().getValue();
 
                     StringBuilder message = new StringBuilder();
-                    message.append(String.format(templateMessage, i.getName(), user.get().getName(), user.get().getPhone()))
+
+                    /*--------------------------------------------------------------------------------------------------------*/
+                    /* Build message */
+                    message.append(String.format(template, i.getName(), user.get().getName(), user.get().getPhone(), linkMap))
                             .append(policeList.toString())
                             .append(rsList.toString())
-                            .append(pkList.toString())
-                            .append("\nBerikut lokasi teman Anda :\n").append(linkMap);
+                            .append(pkList.toString());
+                    /*--------------------------------------------------------------------------------------------------------*/
 
-
-                    String endpoint = String.format(waEndpoint, i.getPhone().replaceFirst("0", "62"), message);
-
-                    ResponseEntity<String> responseEntity = restTemplate.getForEntity(endpoint, String.class);
-
-                    log.info(responseEntity.toString());
-                    /*log.info(message.toString());*/
+                    try {
+                        whatsAppService.sendText(message.toString(), i.getPhone());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
                 newThread.start();
             });

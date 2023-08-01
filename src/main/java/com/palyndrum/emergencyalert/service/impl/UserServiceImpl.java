@@ -12,11 +12,11 @@ import com.palyndrum.emergencyalert.entity.User;
 import com.palyndrum.emergencyalert.repository.ApplicationConfigRepository;
 import com.palyndrum.emergencyalert.repository.UserRepository;
 import com.palyndrum.emergencyalert.service.UserService;
+import com.palyndrum.emergencyalert.service.WhatsAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -33,19 +33,20 @@ public class UserServiceImpl implements UserService {
     private ApplicationConfigRepository applicationConfigRepository;
     private MailSender mailSender;
     private RestTemplate restTemplate;
+    private WhatsAppService whatsAppService;
 
     @Value("${mail.send.to}")
     private String mailSendTo;
 
 
-    public UserServiceImpl(UserRepository userRepository, CurrentUser currentUser, ApplicationConfigRepository applicationConfigRepository, MailSender mailSender, RestTemplate restTemplate) {
+    public UserServiceImpl(UserRepository userRepository, CurrentUser currentUser, ApplicationConfigRepository applicationConfigRepository, MailSender mailSender, RestTemplate restTemplate, WhatsAppService whatsAppService) {
         this.userRepository = userRepository;
         this.currentUser = currentUser;
         this.applicationConfigRepository = applicationConfigRepository;
         this.mailSender = mailSender;
         this.restTemplate = restTemplate;
+        this.whatsAppService = whatsAppService;
     }
-
 
     @Override
     public User findById(String id) throws ResourceNotFoundException {
@@ -133,28 +134,15 @@ public class UserServiceImpl implements UserService {
         user.setLastOtpSendDate(new Date());
         userRepository.save(user);
 
-        /*SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("noreply@pesandarurat.com");
-        message.setTo(mailSendTo);
-        message.setSubject("Kode Verifikasi");
-        message.setText(String.format("Hai %s\nKode verifikasi Anda : %s", user.getName(), otp));*/
-
-        String waEndpoint = applicationConfigRepository.findById(CodeConfigConstant.RAPIWHA_ENDPOINT)
-                .orElseThrow(() -> ResourceNotFoundException.create(String.format("Config '%s' doesn't exist.", CodeConfigConstant.RAPIWHA_ENDPOINT))).getValue();
-
-
-        String endpoint = String.format(waEndpoint, user.getPhone().replaceFirst("0", "62"), String.format(templateMessage, user.getName(), otp));
+        String message = String.format(templateMessage, user.getName(), otp);
 
         Thread newThread = new Thread(() -> {
-            log.info("start send to wa {}", user.getName());
-            ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
-            log.info(response.toString());
-            log.info("finish send to wa {}", user.getName());
+            try {
+                whatsAppService.sendText(message, user.getPhone());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-
-            /*      log.info("start send email {}", user.getName());
-             *//*mailSender.send(message);*//*
-            log.info("finish send email {}", user.getName());*/
         });
         newThread.start();
 
